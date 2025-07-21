@@ -8,6 +8,42 @@ interface FileUploadProps {
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessing, hasImages }) => {
+  const handleFileInput = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length > 0) {
+        onFileSelect(files);
+      }
+    },
+    [onFileSelect]
+  );
+
+  return (
+    <div className="mb-8">
+  if (hasImages) {
+    // Return small button for adding more images when images exist
+    return (
+      <div className="relative inline-block">
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleFileInput}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          disabled={isProcessing}
+        />
+        <button
+          className="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          disabled={isProcessing}
+        >
+          <Upload className="w-3 h-3" />
+          <span>Add more</span>
+        </button>
+      </div>
+    );
+  }
+
+  // Return full upload area when no images
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -29,29 +65,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
     [onFileSelect]
   );
 
-  const handleFileInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files || []);
-      if (files.length > 0) {
-        onFileSelect(files);
-      }
-    },
-    [onFileSelect]
-  );
-
   return (
     <div className="mb-8">
       <div
-        className={`relative border-2 border-dashed rounded-2xl text-center transition-all duration-300 ${
-          hasImages 
-            ? 'p-2 h-10 flex items-center justify-center border-gray-200 hover:border-blue-300 bg-gray-50 hover:bg-blue-50' 
-            : 'p-12 min-h-[280px] flex flex-col justify-center'
-        } ${
+        className={`relative border-2 border-dashed rounded-2xl text-center p-12 min-h-[280px] flex flex-col justify-center transition-all duration-300 ${
           isProcessing
             ? 'border-blue-300 bg-blue-50'
-            : hasImages 
-              ? '' 
-              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
+            : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
         }`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -65,38 +85,34 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
           disabled={isProcessing}
         />
         
-        <div className={hasImages ? 'flex items-center space-x-2' : 'flex flex-col items-center space-y-4'}>
-          <div className={`${hasImages ? 'p-1' : 'p-4'} rounded-full transition-colors ${
+        <div className="flex flex-col items-center space-y-4">
+          <div className={`p-4 rounded-full transition-colors ${
             isProcessing ? 'bg-blue-100' : 'bg-gray-100'
           }`}>
             {isProcessing ? (
-              <div className={`${hasImages ? 'w-2 h-2' : 'w-8 h-8'} border-2 border-blue-500 border-t-transparent rounded-full animate-spin`} />
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Upload className={`${hasImages ? 'w-2 h-2' : 'w-8 h-8'} text-gray-600`} />
+              <Upload className="w-8 h-8 text-gray-600" />
             )}
           </div>
           
-          <div className={hasImages ? '' : 'space-y-2'}>
-            <h3 className={`${hasImages ? 'text-xs font-medium' : 'text-xl font-semibold'} text-gray-900 ${hasImages ? '' : 'mb-2'}`}>
-              {isProcessing ? (hasImages ? 'Processing...' : 'Processing...') : hasImages ? 'Add more' : 'Drop your images here'}
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {isProcessing ? 'Processing...' : 'Drop your images here'}
             </h3>
-            {!hasImages && (
-              <p className="text-gray-600">
-                {isProcessing
-                  ? 'Compressing your images with advanced algorithms'
-                  : 'or click to browse • Supports JPG, PNG, WEBP'}
-              </p>
-            )}
+            <p className="text-gray-600">
+              {isProcessing
+                ? 'Compressing your images with advanced algorithms'
+                : 'or click to browse • Supports JPG, PNG, WEBP'}
+            </p>
           </div>
 
-          {!hasImages && (
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <div className="flex items-center space-x-1">
-                <ImageIcon className="w-4 h-4" />
-                <span>Multiple files supported</span>
-              </div>
+          <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <div className="flex items-center space-x-1">
+              <ImageIcon className="w-4 h-4" />
+              <span>Multiple files supported</span>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

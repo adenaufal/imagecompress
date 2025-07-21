@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
 import { CompressionControls } from './components/CompressionControls';
@@ -28,6 +29,18 @@ function App() {
     const newImages = files.map(file => ({ file }));
     setImages(prev => [...prev, ...newImages]);
   }, []);
+
+  // Listen for the custom event from the "Add more" button
+  useEffect(() => {
+    const handleAddMoreImages = (event: CustomEvent) => {
+      handleFileSelect(event.detail);
+    };
+
+    window.addEventListener('addMoreImages', handleAddMoreImages as EventListener);
+    return () => {
+      window.removeEventListener('addMoreImages', handleAddMoreImages as EventListener);
+    };
+  }, [handleFileSelect]);
 
   const handleRemoveImage = useCallback((index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));

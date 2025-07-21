@@ -1,6 +1,7 @@
 import React from 'react';
 import { Download, X, TrendingDown } from 'lucide-react';
 import { formatFileSize, downloadFile } from '../utils/imageCompression';
+import { FileUpload } from './FileUpload';
 
 interface CompressionResult {
   file: File;
@@ -31,7 +32,17 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove }) 
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">Images</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-900">Images</h3>
+        <FileUpload 
+          onFileSelect={(files) => {
+            // This will be handled by the parent component
+            window.dispatchEvent(new CustomEvent('addMoreImages', { detail: files }));
+          }} 
+          isProcessing={false}
+          hasImages={true}
+        />
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {images.map((image, index) => (
