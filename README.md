@@ -2,8 +2,6 @@
 
 A powerful and easy-to-use image compression tool built with React and TypeScript. Compress your images locally in your browser without sacrificing quality.
 
-<br />
-
 <a href="https://imgcmprs.netlify.app" target="_blank">
   <img src="https://img.shields.io/badge/View%20Demo-28a745?style=for-the-badge" alt="View Demo" />
 </a>
