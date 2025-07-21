@@ -2,7 +2,7 @@
 
 A powerful and easy-to-use image compression tool built with React and TypeScript. Compress your images locally in your browser without sacrificing quality.
 
-![image](https://github.com/user-attachments/assets/98163964-13a0-4531-825c-b1c3a68f6e3a)
+![image](images/Screenshot%202025-07-21%20122234.png)
 
 ---
 
