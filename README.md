@@ -1,4 +1,4 @@
-# ✨ Image Compressor
+# ✨ ImageCompress
 
 A powerful and easy-to-use image compression tool built with React and TypeScript. Compress your images locally in your browser without sacrificing quality.
 
