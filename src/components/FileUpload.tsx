@@ -44,7 +44,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
       <div
         className={`relative border-2 border-dashed rounded-2xl text-center transition-all duration-300 flex flex-col justify-center ${
           hasImages 
-            ? 'p-6 min-h-[120px]' 
+            ? 'p-3 min-h-[60px]' 
             : 'p-12 min-h-[280px]'
         } ${
           isProcessing
@@ -64,27 +64,27 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
         />
         
         <div className="flex flex-col items-center space-y-4">
-          <div className={`${hasImages ? 'p-2' : 'p-4'} rounded-full transition-colors ${
+          <div className={`${hasImages ? 'p-1' : 'p-4'} rounded-full transition-colors ${
             isProcessing ? 'bg-blue-100' : 'bg-gray-100'
           }`}>
             {isProcessing ? (
-              <div className={`${hasImages ? 'w-5 h-5' : 'w-8 h-8'} border-2 border-blue-500 border-t-transparent rounded-full animate-spin`} />
+              <div className={`${hasImages ? 'w-3 h-3' : 'w-8 h-8'} border-2 border-blue-500 border-t-transparent rounded-full animate-spin`} />
             ) : (
-              <Upload className={`${hasImages ? 'w-5 h-5' : 'w-8 h-8'} text-gray-600`} />
+              <Upload className={`${hasImages ? 'w-3 h-3' : 'w-8 h-8'} text-gray-600`} />
             )}
           </div>
           
-          <div>
-            <h3 className={`${hasImages ? 'text-lg' : 'text-xl'} font-semibold text-gray-900 mb-2`}>
+          <div className={hasImages ? 'space-y-0' : 'space-y-2'}>
+            <h3 className={`${hasImages ? 'text-sm' : 'text-xl'} font-semibold text-gray-900 ${hasImages ? 'mb-0' : 'mb-2'}`}>
               {isProcessing ? 'Processing...' : 'Drop your images here'}
             </h3>
-            <p className={`text-gray-600 ${hasImages ? 'text-sm' : ''}`}>
-              {isProcessing
-                ? 'Compressing your images with advanced algorithms'
-                : hasImages 
-                  ? 'Add more images'
+            {!hasImages && (
+              <p className="text-gray-600">
+                {isProcessing
+                  ? 'Compressing your images with advanced algorithms'
                   : 'or click to browse • Supports JPG, PNG, WEBP'}
-            </p>
+              </p>
+            )}
           </div>
 
           {!hasImages && (
