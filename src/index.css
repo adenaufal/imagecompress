@@ -10,7 +10,7 @@
 
 @layer components {
   .slider {
-    background: linear-gradient(to right, #3B82F6 0%, #3B82F6 var(--value, 70%), #E5E7EB var(--value, 70%), #E5E7EB 100%);
+    background: #E5E7EB;
   }
   
   .slider::-webkit-slider-thumb {
@@ -37,6 +37,13 @@
     cursor: pointer;
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .slider::-moz-range-track {
+    background: #E5E7EB;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
   }
 }
 

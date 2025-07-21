@@ -158,7 +158,18 @@ function App() {
         </div>
 
         <footer className="text-center mt-16 py-8 text-gray-500 text-sm">
-          <p>Built with ❤️ for the web • All processing happens locally in your browser</p>
+          <p>
+            Built with ❤️ by{' '}
+            <a 
+              href="https://github.com/adenaufal" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              adenaufal
+            </a>
+            {' '}• All processing happens locally in your browser
+          </p>
         </footer>
       </div>
     </div>

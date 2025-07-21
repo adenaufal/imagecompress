@@ -27,10 +27,15 @@ export const Header: React.FC = () => {
           <Zap className="w-4 h-4 text-yellow-500" />
           <span>Lightning fast processing</span>
         </div>
-        <div className="flex items-center space-x-1">
+        <a 
+          href="https://github.com/adenaufal/imagecompress" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center space-x-1 hover:text-gray-700 transition-colors"
+        >
           <Github className="w-4 h-4" />
           <span>Open source</span>
-        </div>
+        </a>
       </div>
     </header>
   );
