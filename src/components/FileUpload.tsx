@@ -39,9 +39,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
   );
 
   return (
-    <div className="mb-6">
+    <div className="mb-8">
       <div
-        className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
+        className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 min-h-[280px] flex flex-col justify-center ${
           isProcessing
             ? 'border-blue-300 bg-blue-50'
             : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
