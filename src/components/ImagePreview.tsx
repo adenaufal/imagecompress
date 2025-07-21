@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, X, TrendingDown } from 'lucide-react';
+import { Download, X, TrendingDown, Upload } from 'lucide-react';
 import { formatFileSize, downloadFile } from '../utils/imageCompression';
 import { FileUpload } from './FileUpload';
 
@@ -34,14 +34,24 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove }) 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Images</h3>
-        <FileUpload 
-          onFileSelect={(files) => {
-            // This will be handled by the parent component
-            window.dispatchEvent(new CustomEvent('addMoreImages', { detail: files }));
-          }} 
-          isProcessing={false}
-          hasImages={true}
-        />
+        <div className="relative inline-block">
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || []);
+              if (files.length > 0) {
+                window.dispatchEvent(new CustomEvent('addMoreImages', { detail: files }));
+              }
+            }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <button className="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+            <Upload className="w-3 h-3" />
+            <span>Add more</span>
+          </button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
