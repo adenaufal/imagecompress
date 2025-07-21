@@ -40,26 +40,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
   );
 
   if (hasImages) {
-    // Return small button for adding more images when images exist
-    return (
-      <div className="relative inline-block">
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={isProcessing}
-        />
-        <button
-          className="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-          disabled={isProcessing}
-        >
-          <Upload className="w-3 h-3" />
-          <span>Add more</span>
-        </button>
-      </div>
-    );
+    return null;
   }
 
   // Return full upload area when no images
