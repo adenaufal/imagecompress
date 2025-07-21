@@ -102,6 +102,7 @@ function App() {
               <FileUpload 
                 onFileSelect={handleFileSelect} 
                 isProcessing={isProcessing}
+                hasImages={images.length > 0}
               />
               
               {images.length > 0 && (
