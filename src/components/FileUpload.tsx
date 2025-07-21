@@ -18,8 +18,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
     [onFileSelect]
   );
 
-  return (
-    <div className="mb-8">
   if (hasImages) {
     // Return small button for adding more images when images exist
     return (
