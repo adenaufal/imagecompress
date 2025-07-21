@@ -18,6 +18,27 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
     [onFileSelect]
   );
 
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const files = Array.from(e.dataTransfer.files).filter((file) =>
+        file.type.startsWith('image/')
+      );
+      
+      if (files.length > 0) {
+        onFileSelect(files);
+      }
+    },
+    [onFileSelect]
+  );
+
   if (hasImages) {
     // Return small button for adding more images when images exist
     return (
@@ -42,27 +63,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isProcessi
   }
 
   // Return full upload area when no images
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const files = Array.from(e.dataTransfer.files).filter((file) =>
-        file.type.startsWith('image/')
-      );
-      
-      if (files.length > 0) {
-        onFileSelect(files);
-      }
-    },
-    [onFileSelect]
-  );
-
   return (
     <div className="mb-8">
       <div
