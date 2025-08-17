@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
 import { CompressionControls } from './components/CompressionControls';
 import { ImagePreview } from './components/ImagePreview';
-import { compressImage, downloadFile } from './utils/imageCompression';
+import { compressImage, downloadFile, formatFileSize, copyAllImagesToClipboard } from './utils/imageCompression';
 
 interface CompressionResult {
   file: File;
@@ -91,11 +91,26 @@ function App() {
   const handleDownloadAll = useCallback(() => {
     images.forEach((image) => {
       if (image.result) {
-        const filename = image.file.name.replace(/\.[^/.]+$/, '') + '_compressed.jpg';
-        downloadFile(image.result.blob, filename);
+        downloadFile(image.result.blob, image.file.name, format);
       }
     });
-  }, [images]);
+  }, [images, format]);
+
+  const handleCopyAll = async () => {
+    const blobs = images
+      .map(image => image.result?.blob)
+      .filter((blob): blob is Blob => blob !== undefined);
+    
+    if (blobs.length === 0) return;
+    
+    try {
+      await copyAllImagesToClipboard(blobs);
+      // You could add a toast notification here if needed
+    } catch (error) {
+      console.error('Failed to copy all images:', error);
+      // You could add error notification here if needed
+    }
+  };
 
   const hasResults = images.some(img => img.result);
   const totalOriginalSize = images.reduce((sum, img) => sum + img.file.size, 0);
@@ -164,6 +179,7 @@ function App() {
                 onFormatChange={setFormat}
                 onCompress={handleCompress}
                 onDownloadAll={handleDownloadAll}
+                onCopyAll={handleCopyAll}
                 isProcessing={isProcessing}
                 hasResults={hasResults}
               />

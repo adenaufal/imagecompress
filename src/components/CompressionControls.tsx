@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Zap, Download } from 'lucide-react';
+import { Settings, Zap, Download, Copy } from 'lucide-react';
 
 interface CompressionControlsProps {
   quality: number;
@@ -10,7 +10,9 @@ interface CompressionControlsProps {
   onFormatChange: (format: 'jpeg' | 'png' | 'webp') => void;
   onCompress: () => void;
   onDownloadAll: () => void;
+  onCopyAll: () => void;
   isProcessing: boolean;
+  hasImages: boolean;
   hasResults: boolean;
 }
 
@@ -23,7 +25,9 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
   onFormatChange,
   onCompress,
   onDownloadAll,
+  onCopyAll,
   isProcessing,
+  hasImages,
   hasResults,
 }) => {
   return (
@@ -103,13 +107,22 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
           </button>
 
           {hasResults && (
-            <button
-              onClick={onDownloadAll}
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download All</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={onCopyAll}
+                className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Copy All</span>
+              </button>
+              <button
+                onClick={onDownloadAll}
+                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download All</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
