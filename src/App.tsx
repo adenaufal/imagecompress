@@ -14,6 +14,8 @@ interface CompressionResult {
     originalSize: number;
     compressedSize: number;
     compressionRatio: number;
+    originalWidth: number;
+    originalHeight: number;
   };
   isProcessing?: boolean;
 }
@@ -112,6 +114,10 @@ function App() {
     }
   };
 
+  const handleClearAll = () => {
+    setImages([]);
+  };
+
   const hasResults = images.some(img => img.result);
   const totalOriginalSize = images.reduce((sum, img) => sum + img.file.size, 0);
   const totalCompressedSize = images.reduce((sum, img) => sum + (img.result?.compressedSize || 0), 0);
@@ -124,7 +130,28 @@ function App() {
       <div className="container mx-auto px-4 py-8">
         <Header />
 
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto mt-8">
+          {/* Compression Controls - Moved to top on mobile/tablet */}
+          {images.length > 0 && (
+            <div className="lg:hidden mb-8">
+              <CompressionControls
+                quality={quality}
+                onQualityChange={setQuality}
+                maxWidth={maxWidth}
+                onMaxWidthChange={setMaxWidth}
+                format={format}
+                onFormatChange={setFormat}
+                onCompress={handleCompress}
+                onDownloadAll={handleDownloadAll}
+                onCopyAll={handleCopyAll}
+                onClearAll={handleClearAll}
+                isProcessing={isProcessing}
+                hasImages={images.length > 0}
+                hasResults={hasResults}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <FileUpload 
@@ -132,16 +159,9 @@ function App() {
                 isProcessing={isProcessing}
                 hasImages={images.length > 0}
               />
-              
-              {images.length > 0 && (
-                <ImagePreview 
-                  images={images} 
-                  onRemove={handleRemoveImage}
-                />
-              )}
 
               {hasResults && (
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200 animate-fade-in">
+                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm animate-fade-in">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
                     Compression Summary
                   </h3>
@@ -167,9 +187,18 @@ function App() {
                   </div>
                 </div>
               )}
+              
+              {images.length > 0 && (
+                <ImagePreview
+              images={images}
+              onRemove={handleRemoveImage}
+              format={format}
+            />
+              )}
             </div>
 
-            <div>
+            {/* Compression Controls - Desktop sidebar */}
+            <div className="hidden lg:block">
               <CompressionControls
                 quality={quality}
                 onQualityChange={setQuality}
@@ -180,14 +209,16 @@ function App() {
                 onCompress={handleCompress}
                 onDownloadAll={handleDownloadAll}
                 onCopyAll={handleCopyAll}
+                onClearAll={handleClearAll}
                 isProcessing={isProcessing}
+                hasImages={images.length > 0}
                 hasResults={hasResults}
               />
             </div>
           </div>
         </div>
 
-        <footer className="text-center mt-16 py-8 text-gray-500 text-sm">
+        <footer className="text-center mt-16 py-8 text-gray-500 text-sm hidden md:block">
           <p>
             Built with ❤️ by{' '}
             <a 

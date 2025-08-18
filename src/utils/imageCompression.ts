@@ -3,6 +3,7 @@ interface CompressionOptions {
   maxWidth?: number;
   maxHeight?: number;
   format?: 'jpeg' | 'png' | 'webp';
+  deviceType?: 'mobile' | 'tablet' | 'desktop';
 }
 
 interface CompressionResult {
@@ -14,6 +15,38 @@ interface CompressionResult {
   originalWidth: number;
   originalHeight: number;
 }
+
+// Device detection utility
+const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  if (width < 1024) return 'tablet';
+  return 'desktop';
+};
+
+// Get device-specific compression settings
+const getDeviceCompressionSettings = (baseOptions: CompressionOptions) => {
+  const deviceType = baseOptions.deviceType || getDeviceType();
+  
+  switch (deviceType) {
+    case 'mobile':
+      return {
+        ...baseOptions,
+        quality: Math.max(0.4, baseOptions.quality - 0.2), // More aggressive compression
+        maxWidth: Math.min(baseOptions.maxWidth || 800, 800),
+        maxHeight: Math.min(baseOptions.maxHeight || 600, 600)
+      };
+    case 'tablet':
+      return {
+        ...baseOptions,
+        quality: Math.max(0.5, baseOptions.quality - 0.1), // Moderate compression
+        maxWidth: Math.min(baseOptions.maxWidth || 1200, 1200),
+        maxHeight: Math.min(baseOptions.maxHeight || 900, 900)
+      };
+    default: // desktop
+      return baseOptions; // Preserve original quality for desktop
+  }
+};
 
 export const compressImage = (
   file: File,
@@ -29,10 +62,13 @@ export const compressImage = (
       const originalWidth = img.width;
       const originalHeight = img.height;
       
+      // Get device-specific settings
+      const deviceSettings = getDeviceCompressionSettings(options);
+      
       // Calculate new dimensions
       let { width, height } = img;
-      const maxWidth = options.maxWidth || 1920;
-      const maxHeight = options.maxHeight || 1080;
+      const maxWidth = deviceSettings.maxWidth || 1920;
+      const maxHeight = deviceSettings.maxHeight || 1080;
 
       if (width > maxWidth || height > maxHeight) {
         const ratio = Math.min(maxWidth / width, maxHeight / height);
@@ -49,8 +85,8 @@ export const compressImage = (
 
       // Determine output format
       let outputFormat = 'image/jpeg';
-      if (options.format === 'png') outputFormat = 'image/png';
-      if (options.format === 'webp') outputFormat = 'image/webp';
+      if (deviceSettings.format === 'png') outputFormat = 'image/png';
+      if (deviceSettings.format === 'webp') outputFormat = 'image/webp';
 
       canvas.toBlob(
         (blob) => {
@@ -72,7 +108,7 @@ export const compressImage = (
           });
         },
         outputFormat,
-        options.quality
+        deviceSettings.quality
       );
     };
 
