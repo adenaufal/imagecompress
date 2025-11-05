@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Settings, Zap, Download, Copy, Trash2 } from 'lucide-react';
+import { COMPRESSION_PRESETS, getPresetById } from '../utils/presets';
 
 interface CompressionControlsProps {
   quality: number;
@@ -8,6 +9,8 @@ interface CompressionControlsProps {
   onMaxWidthChange: (width: number) => void;
   format: 'jpeg' | 'png' | 'webp';
   onFormatChange: (format: 'jpeg' | 'png' | 'webp') => void;
+  selectedPreset: string;
+  onPresetChange: (presetId: string) => void;
   onCompress: () => void;
   onDownloadAll: () => void;
   onCopyAll: () => void;
@@ -24,6 +27,8 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
   onMaxWidthChange,
   format,
   onFormatChange,
+  selectedPreset,
+  onPresetChange,
   onCompress,
   onDownloadAll,
   onCopyAll,
@@ -32,16 +37,59 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
   hasImages,
   hasResults,
 }) => {
+  // Apply preset settings when preset changes
+  useEffect(() => {
+    if (selectedPreset !== 'custom') {
+      const preset = getPresetById(selectedPreset);
+      if (preset) {
+        onQualityChange(preset.quality);
+        onMaxWidthChange(preset.maxWidth);
+        onFormatChange(preset.format);
+      }
+    }
+  }, [selectedPreset]); // Only run when preset changes
+
+  // Detect if user has customized settings
+  const handleSettingChange = (type: 'quality' | 'maxWidth' | 'format', value: any) => {
+    if (type === 'quality') onQualityChange(value);
+    if (type === 'maxWidth') onMaxWidthChange(value);
+    if (type === 'format') onFormatChange(value);
+
+    // Switch to custom if user changes settings manually
+    if (selectedPreset !== 'custom') {
+      onPresetChange('custom');
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl p-2 md:p-6 shadow-lg border border-gray-100">
+    <div className="bg-white dark:bg-dark-card rounded-xl p-2 md:p-6 shadow-lg border border-gray-100 dark:border-dark-border transition-colors duration-300">
       <div className="flex items-center space-x-1.5 mb-2 md:mb-6">
-        <Settings className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-        <h3 className="text-sm md:text-lg font-semibold text-gray-900">Compression Settings</h3>
+        <Settings className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
+        <h3 className="text-sm md:text-lg font-semibold text-gray-900 dark:text-gray-100">Compression Settings</h3>
       </div>
 
       <div className="space-y-2 md:space-y-6">
+        {/* Preset Selector */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-3">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 md:mb-3">
+            Quick Presets
+          </label>
+          <select
+            value={selectedPreset}
+            onChange={(e) => onPresetChange(e.target.value)}
+            className="w-full p-1.5 md:p-3 text-xs md:text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md md:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            aria-label="Select compression preset"
+          >
+            {COMPRESSION_PRESETS.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.icon} {preset.name} - {preset.description}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 md:mb-3">
             Quality: {Math.round(quality * 100)}%
           </label>
           <div className="relative">
@@ -51,10 +99,11 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
               max="1"
               step="0.05"
               value={quality}
-              onChange={(e) => onQualityChange(parseFloat(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              onChange={(e) => handleSettingChange('quality', parseFloat(e.target.value))}
+              className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+              aria-label={`Quality: ${Math.round(quality * 100)}%`}
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
               <span className="text-xs">High compression</span>
               <span className="text-xs">Best quality</span>
             </div>
@@ -62,13 +111,14 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-3">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 md:mb-3">
             Max Width: {maxWidth}px
           </label>
           <select
             value={maxWidth}
-            onChange={(e) => onMaxWidthChange(parseInt(e.target.value))}
-            className="w-full p-1.5 md:p-3 text-xs md:text-sm border border-gray-300 rounded-md md:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) => handleSettingChange('maxWidth', parseInt(e.target.value))}
+            className="w-full p-1.5 md:p-3 text-xs md:text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md md:rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            aria-label={`Max width: ${maxWidth} pixels`}
           >
             <option value={800}>800px (Small)</option>
             <option value={1200}>1200px (Medium)</option>
@@ -78,19 +128,21 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1 md:mb-3">
+          <label className="block text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 md:mb-3">
             Output Format
           </label>
           <div className="grid grid-cols-3 gap-0.5 md:gap-2">
             {(['jpeg', 'png', 'webp'] as const).map((fmt) => (
               <button
                 key={fmt}
-                onClick={() => onFormatChange(fmt)}
-                className={`p-1 md:p-3 text-xs md:text-sm font-medium rounded-md md:rounded-lg transition-colors ${
+                onClick={() => handleSettingChange('format', fmt)}
+                className={`p-1 md:p-3 text-xs md:text-sm font-medium rounded-md md:rounded-lg transition-all duration-200 transform active:scale-95 ${
                   format === fmt
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
+                aria-label={`Select ${fmt.toUpperCase()} format`}
+                aria-pressed={format === fmt}
               >
                 {fmt.toUpperCase()}
               </button>
@@ -102,7 +154,8 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
           <button
             onClick={onCompress}
             disabled={!hasImages || isProcessing}
-            className="w-full flex items-center justify-center space-x-1 bg-blue-600 text-white px-1.5 md:px-4 py-1 md:py-3 rounded-md md:rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs md:text-base"
+            className="w-full flex items-center justify-center space-x-1 bg-blue-600 dark:bg-blue-500 text-white px-1.5 md:px-4 py-1 md:py-3 rounded-md md:rounded-lg font-medium hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform active:scale-95 text-xs md:text-base"
+            aria-label={isProcessing ? 'Compressing images' : 'Compress images'}
           >
             <Zap className="w-3 h-3 md:w-4 md:h-4" />
             <span>
@@ -114,25 +167,28 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
             <div className="grid grid-cols-2 gap-0.5 md:gap-2">
               <button
                 onClick={onCopyAll}
-                className="flex items-center justify-center space-x-0.5 bg-green-600 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-green-700 transition-colors text-xs md:text-sm"
+                className="flex items-center justify-center space-x-0.5 bg-green-600 dark:bg-green-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
+                aria-label="Copy all compressed images"
               >
                 <Copy className="w-3 h-3 md:w-4 md:h-4" />
                 <span>Copy</span>
               </button>
               <button
                 onClick={onDownloadAll}
-                className="flex items-center justify-center space-x-0.5 bg-purple-600 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-purple-700 transition-colors text-xs md:text-sm"
+                className="flex items-center justify-center space-x-0.5 bg-purple-600 dark:bg-purple-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
+                aria-label="Download all compressed images"
               >
                 <Download className="w-3 h-3 md:w-4 md:h-4" />
                 <span>Download</span>
               </button>
             </div>
           )}
-          
+
           {hasImages && (
             <button
               onClick={onClearAll}
-              className="w-full flex items-center justify-center space-x-1 md:space-x-2 bg-red-600 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-red-700 transition-colors text-xs md:text-sm"
+              className="w-full flex items-center justify-center space-x-1 md:space-x-2 bg-red-600 dark:bg-red-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-red-700 dark:hover:bg-red-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
+              aria-label="Clear all images"
             >
               <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
               <span>Clear All</span>
