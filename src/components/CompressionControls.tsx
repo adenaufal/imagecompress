@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Settings, Zap, Download, Copy, Trash2 } from 'lucide-react';
+import { Settings, Zap, Download, Copy, Trash2, Archive } from 'lucide-react';
 import { COMPRESSION_PRESETS, getPresetById } from '../utils/presets';
 
 interface CompressionControlsProps {
@@ -13,6 +13,7 @@ interface CompressionControlsProps {
   onPresetChange: (presetId: string) => void;
   onCompress: () => void;
   onDownloadAll: () => void;
+  onDownloadAsZip: () => void;
   onCopyAll: () => void;
   onClearAll: () => void;
   isProcessing: boolean;
@@ -31,6 +32,7 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
   onPresetChange,
   onCompress,
   onDownloadAll,
+  onDownloadAsZip,
   onCopyAll,
   onClearAll,
   isProcessing,
@@ -164,24 +166,34 @@ export const CompressionControls: React.FC<CompressionControlsProps> = ({
           </button>
 
           {hasResults && (
-            <div className="grid grid-cols-2 gap-0.5 md:gap-2">
+            <>
+              <div className="grid grid-cols-2 gap-0.5 md:gap-2">
+                <button
+                  onClick={onCopyAll}
+                  className="flex items-center justify-center space-x-0.5 bg-green-600 dark:bg-green-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
+                  aria-label="Copy all compressed images"
+                >
+                  <Copy className="w-3 h-3 md:w-4 md:h-4" />
+                  <span>Copy</span>
+                </button>
+                <button
+                  onClick={onDownloadAll}
+                  className="flex items-center justify-center space-x-0.5 bg-purple-600 dark:bg-purple-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
+                  aria-label="Download all compressed images"
+                >
+                  <Download className="w-3 h-3 md:w-4 md:h-4" />
+                  <span>Download</span>
+                </button>
+              </div>
               <button
-                onClick={onCopyAll}
-                className="flex items-center justify-center space-x-0.5 bg-green-600 dark:bg-green-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-green-700 dark:hover:bg-green-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
-                aria-label="Copy all compressed images"
+                onClick={onDownloadAsZip}
+                className="w-full flex items-center justify-center space-x-1 md:space-x-2 bg-indigo-600 dark:bg-indigo-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
+                aria-label="Download all as ZIP file"
               >
-                <Copy className="w-3 h-3 md:w-4 md:h-4" />
-                <span>Copy</span>
+                <Archive className="w-3 h-3 md:w-4 md:h-4" />
+                <span>Download as ZIP</span>
               </button>
-              <button
-                onClick={onDownloadAll}
-                className="flex items-center justify-center space-x-0.5 bg-purple-600 dark:bg-purple-500 text-white px-1 md:px-3 py-1 md:py-2.5 rounded-md md:rounded-lg font-medium hover:bg-purple-700 dark:hover:bg-purple-600 transition-all duration-200 transform active:scale-95 text-xs md:text-sm"
-                aria-label="Download all compressed images"
-              >
-                <Download className="w-3 h-3 md:w-4 md:h-4" />
-                <span>Download</span>
-              </button>
-            </div>
+            </>
           )}
 
           {hasImages && (
