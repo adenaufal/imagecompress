@@ -5,10 +5,12 @@ import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
 import { CompressionControls } from './components/CompressionControls';
 import { ImagePreview } from './components/ImagePreview';
+import { HistoryPanel } from './components/HistoryPanel';
 import { compressImage, downloadFile, formatFileSize, copyAllImagesToClipboard } from './utils/imageCompression';
 import { getDefaultPreset } from './utils/presets';
 import { exportToZip, changeFileExtension } from './utils/zipExport';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useCompressionHistory } from './hooks/useCompressionHistory';
 
 interface CompressionResult {
   file: File;
@@ -22,6 +24,7 @@ interface CompressionResult {
     originalHeight: number;
   };
   isProcessing?: boolean;
+  progress?: number; // 0-100
 }
 
 function App() {
@@ -32,6 +35,8 @@ function App() {
   const [format, setFormat] = useState<'jpeg' | 'png' | 'webp'>(defaultPreset.format);
   const [selectedPreset, setSelectedPreset] = useState(defaultPreset.id);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const { history, addSession, deleteSession, clearHistory } = useCompressionHistory();
 
   const handlePresetChange = useCallback((presetId: string) => {
     setSelectedPreset(presetId);
@@ -60,6 +65,13 @@ function App() {
     setImages(prev => prev.filter((_, i) => i !== index));
   }, []);
 
+  const handleEditImage = useCallback((index: number, editedFile: File) => {
+    setImages(prev => prev.map((img, i) =>
+      i === index ? { file: editedFile } : img
+    ));
+    toast.success('Image edited successfully');
+  }, []);
+
   const handleCompress = useCallback(async () => {
     if (images.length === 0) return;
 
@@ -80,12 +92,20 @@ function App() {
             quality,
             maxWidth,
             format,
+            onProgress: (progress) => {
+              // Update progress for this specific image
+              setImages(prev => prev.map((img, i) =>
+                i === index
+                  ? { ...img, progress }
+                  : img
+              ));
+            },
           });
 
           // Update this specific image with its result
           setImages(prev => prev.map((img, i) =>
             i === index
-              ? { ...img, result, isProcessing: false }
+              ? { ...img, result, isProcessing: false, progress: 100 }
               : img
           ));
 
@@ -95,7 +115,7 @@ function App() {
           console.error('Compression failed for', image.file.name, error);
           setImages(prev => prev.map((img, i) =>
             i === index
-              ? { ...img, isProcessing: false }
+              ? { ...img, isProcessing: false, progress: 0 }
               : img
           ));
           failureCount++;
@@ -109,8 +129,12 @@ function App() {
 
       if (failureCount === 0) {
         toast.success(`Successfully compressed ${successCount} image${successCount > 1 ? 's' : ''}!`);
+        // Save to history
+        addSession(images, { quality, maxWidth, format });
       } else if (successCount > 0) {
         toast.success(`Compressed ${successCount} image${successCount > 1 ? 's' : ''}, ${failureCount} failed`);
+        // Save to history even if some failed
+        addSession(images, { quality, maxWidth, format });
       } else {
         toast.error('Compression failed for all images');
       }
@@ -120,7 +144,7 @@ function App() {
     } finally {
       setIsProcessing(false);
     }
-  }, [images, quality, maxWidth, format]);
+  }, [images, quality, maxWidth, format, addSession]);
 
   const handleDownloadAll = useCallback(() => {
     const downloadCount = images.filter(img => img.result).length;
@@ -238,6 +262,14 @@ function App() {
       },
       description: 'Clear all images',
     },
+    {
+      key: 'h',
+      ctrl: true,
+      action: () => {
+        setShowHistory(true);
+      },
+      description: 'View history',
+    },
   ]);
 
   return (
@@ -310,6 +342,7 @@ function App() {
                 <ImagePreview
               images={images}
               onRemove={handleRemoveImage}
+              onEdit={handleEditImage}
               format={format}
             />
               )}
@@ -354,6 +387,19 @@ function App() {
           </p>
         </footer>
       </div>
+
+      {/* History Panel */}
+      {showHistory && (
+        <HistoryPanel
+          history={history}
+          onDeleteSession={deleteSession}
+          onClearHistory={() => {
+            clearHistory();
+            toast.success('History cleared');
+          }}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
     </div>
   );
 }

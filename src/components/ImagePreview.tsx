@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
-import { Download, X, TrendingDown, Upload, Copy } from 'lucide-react';
+import { Download, X, TrendingDown, Upload, Copy, ArrowLeftRight, Edit2 } from 'lucide-react';
 import { formatFileSize, downloadFile, copyImageToClipboard } from '../utils/imageCompression';
+import { ComparisonSlider } from './ComparisonSlider';
+import { Skeleton } from './ui/Skeleton';
+import { ProgressBar } from './ui/ProgressBar';
+import { ImageEditor } from './ImageEditor';
 
 interface CompressionResult {
   file: File;
@@ -14,17 +18,21 @@ interface CompressionResult {
     originalHeight?: number;
   };
   isProcessing?: boolean;
+  progress?: number; // 0-100
 }
 
 interface ImagePreviewProps {
   images: CompressionResult[];
   onRemove: (index: number) => void;
+  onEdit: (index: number, editedFile: File) => void;
   format: 'jpeg' | 'png' | 'webp';
 }
 
-export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove, format }) => {
+export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove, onEdit, format }) => {
   const [copyStatus, setCopyStatus] = React.useState<{ [key: number]: 'idle' | 'copying' | 'success' | 'error' }>({});
   const [objectUrls, setObjectUrls] = React.useState<{ [key: number]: string }>({});
+  const [comparisonIndex, setComparisonIndex] = React.useState<number | null>(null);
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
 
   // Create and cleanup object URLs to prevent memory leaks
   useEffect(() => {
@@ -102,13 +110,25 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove, fo
               <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate pr-1 text-xs md:text-base">
                 {image.file.name}
               </h4>
-              <button
-                onClick={() => onRemove(index)}
-                className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0"
-                aria-label={`Remove ${image.file.name}`}
-              >
-                <X className="w-3 h-3 md:w-4 md:h-4" />
-              </button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {!image.result && !image.isProcessing && (
+                  <button
+                    onClick={() => setEditingIndex(index)}
+                    className="text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                    aria-label={`Edit ${image.file.name}`}
+                    title="Edit image"
+                  >
+                    <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => onRemove(index)}
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  aria-label={`Remove ${image.file.name}`}
+                >
+                  <X className="w-3 h-3 md:w-4 md:h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-md md:rounded-lg mb-2 md:mb-4 overflow-hidden">
@@ -133,10 +153,18 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove, fo
               )}
 
               {image.isProcessing && (
-                <div className="flex items-center space-x-1 md:space-x-2 text-blue-600 dark:text-blue-400">
-                  <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs">Processing...</span>
-                </div>
+                <>
+                  <div className="flex items-center space-x-1 md:space-x-2 text-blue-600 dark:text-blue-400 mb-3">
+                    <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs">Processing...</span>
+                  </div>
+                  <ProgressBar
+                    progress={image.progress || 0}
+                    variant="gradient"
+                    showPercentage={true}
+                    size="md"
+                  />
+                </>
               )}
 
               {image.result && (
@@ -156,7 +184,16 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove, fo
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-1 md:gap-2">
+                    <div className="grid grid-cols-3 gap-1 md:gap-2">
+                      <button
+                        onClick={() => setComparisonIndex(index)}
+                        className="flex items-center justify-center space-x-1 px-1 md:px-2 py-1 md:py-1.5 rounded-md md:rounded-lg text-xs font-medium bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-all duration-200 transform active:scale-95"
+                        title="Compare before and after"
+                        aria-label={`Compare ${image.file.name}`}
+                      >
+                        <ArrowLeftRight className="w-3 h-3" />
+                        <span className="hidden md:inline">Compare</span>
+                      </button>
                       <button
                         onClick={() => handleCopyImage(image, index)}
                         disabled={copyStatus[index] === 'copying'}
@@ -189,6 +226,31 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ images, onRemove, fo
           </div>
         ))}
       </div>
+
+      {/* Comparison Modal */}
+      {comparisonIndex !== null && images[comparisonIndex]?.result && (
+        <ComparisonSlider
+          beforeImage={objectUrls[comparisonIndex] || URL.createObjectURL(images[comparisonIndex].file)}
+          afterImage={images[comparisonIndex].result.url}
+          fileName={images[comparisonIndex].file.name}
+          onClose={() => setComparisonIndex(null)}
+          originalSize={images[comparisonIndex].result.originalSize}
+          compressedSize={images[comparisonIndex].result.compressedSize}
+          compressionRatio={images[comparisonIndex].result.compressionRatio}
+        />
+      )}
+
+      {/* Image Editor */}
+      {editingIndex !== null && images[editingIndex] && (
+        <ImageEditor
+          file={images[editingIndex].file}
+          onSave={(editedFile) => {
+            onEdit(editingIndex, editedFile);
+            setEditingIndex(null);
+          }}
+          onCancel={() => setEditingIndex(null)}
+        />
+      )}
     </div>
   );
 };
