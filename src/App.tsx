@@ -5,6 +5,7 @@ import { FileUpload } from './components/FileUpload';
 import { CompressionControls } from './components/CompressionControls';
 import { ImagePreview } from './components/ImagePreview';
 import { compressImage, downloadFile, formatFileSize, copyAllImagesToClipboard } from './utils/imageCompression';
+import { getDefaultPreset } from './utils/presets';
 
 interface CompressionResult {
   file: File;
@@ -21,11 +22,18 @@ interface CompressionResult {
 }
 
 function App() {
+  const defaultPreset = getDefaultPreset();
   const [images, setImages] = useState<CompressionResult[]>([]);
-  const [quality, setQuality] = useState(0.7);
-  const [maxWidth, setMaxWidth] = useState(1200);
-  const [format, setFormat] = useState<'jpeg' | 'png' | 'webp'>('jpeg');
+  const [quality, setQuality] = useState(defaultPreset.quality);
+  const [maxWidth, setMaxWidth] = useState(defaultPreset.maxWidth);
+  const [format, setFormat] = useState<'jpeg' | 'png' | 'webp'>(defaultPreset.format);
+  const [selectedPreset, setSelectedPreset] = useState(defaultPreset.id);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePresetChange = useCallback((presetId: string) => {
+    setSelectedPreset(presetId);
+    // Settings will be updated in CompressionControls when preset changes
+  }, []);
 
   const handleFileSelect = useCallback((files: File[]) => {
     const newImages = files.map(file => ({ file }));
@@ -126,7 +134,7 @@ function App() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 font-satoshi">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-dark-bg dark:via-gray-900 dark:to-dark-bg font-satoshi transition-colors duration-300">
       <div className="container mx-auto px-4 py-8">
         <Header />
 
@@ -141,6 +149,8 @@ function App() {
                 onMaxWidthChange={setMaxWidth}
                 format={format}
                 onFormatChange={setFormat}
+                selectedPreset={selectedPreset}
+                onPresetChange={handlePresetChange}
                 onCompress={handleCompress}
                 onDownloadAll={handleDownloadAll}
                 onCopyAll={handleCopyAll}
@@ -161,26 +171,26 @@ function App() {
               />
 
               {hasResults && (
-                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm animate-fade-in">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                <div className="bg-white dark:bg-dark-card rounded-2xl p-6 border border-gray-200 dark:border-dark-border shadow-sm animate-fade-in">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
                     Compression Summary
                   </h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-600">Total Original Size:</span>
-                      <div className="font-semibold text-gray-900">
+                      <span className="text-gray-600 dark:text-gray-400">Total Original Size:</span>
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">
                         {(totalOriginalSize / (1024 * 1024)).toFixed(2)} MB
                       </div>
                     </div>
                     <div>
-                      <span className="text-gray-600">Total Compressed Size:</span>
-                      <div className="font-semibold text-green-600">
+                      <span className="text-gray-600 dark:text-gray-400">Total Compressed Size:</span>
+                      <div className="font-semibold text-green-600 dark:text-green-400">
                         {(totalCompressedSize / 1024).toFixed(2)} KB
                       </div>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-gray-600">Overall Space Saved:</span>
-                      <div className="font-bold text-green-600 text-lg">
+                      <span className="text-gray-600 dark:text-gray-400">Overall Space Saved:</span>
+                      <div className="font-bold text-green-600 dark:text-green-400 text-lg">
                         {overallCompressionRatio.toFixed(1)}%
                       </div>
                     </div>
@@ -206,6 +216,8 @@ function App() {
                 onMaxWidthChange={setMaxWidth}
                 format={format}
                 onFormatChange={setFormat}
+                selectedPreset={selectedPreset}
+                onPresetChange={handlePresetChange}
                 onCompress={handleCompress}
                 onDownloadAll={handleDownloadAll}
                 onCopyAll={handleCopyAll}
@@ -218,14 +230,14 @@ function App() {
           </div>
         </div>
 
-        <footer className="text-center mt-16 py-8 text-gray-500 text-sm hidden md:block">
+        <footer className="text-center mt-16 py-8 text-gray-500 dark:text-gray-400 text-sm hidden md:block">
           <p>
             Built with ❤️ by{' '}
-            <a 
-              href="https://github.com/adenaufal" 
-              target="_blank" 
+            <a
+              href="https://github.com/adenaufal"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 transition-colors"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
               adenaufal
             </a>

@@ -1,12 +1,15 @@
 import React from 'react';
-import { Zap, Github, Heart, Menu } from 'lucide-react';
+import { Zap, Github, Heart, Menu, Moon, Sun } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { useTheme } from '../contexts/ThemeContext';
 
 export const Header: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <>
       {/* Mobile Navigation */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 md:hidden">
+      <div className="sticky top-0 z-50 bg-white dark:bg-dark-bg border-b border-gray-200 dark:border-dark-border md:hidden transition-colors duration-300">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center space-x-2">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
@@ -16,57 +19,65 @@ export const Header: React.FC = () => {
               ImageCompress
             </h1>
           </div>
-          
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <Menu className="w-5 h-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-80 bg-white p-6">
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-yellow-500" />}
+            </button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors" aria-label="Open menu">
+                  <Menu className="w-5 h-5 dark:text-gray-200" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80 bg-white dark:bg-dark-card p-6">
               <SheetHeader>
-                <SheetTitle>About ImageCompress</SheetTitle>
+                <SheetTitle className="dark:text-gray-100">About ImageCompress</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col space-y-6 mt-4">
                 {/* Hero Text */}
-                <div className="p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-lg border border-blue-200">
-                  <p className="text-sm font-medium text-gray-800 leading-relaxed">
+                <div className="p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950 dark:via-dark-bg dark:to-purple-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
                     Ultra-powerful image compression that reduces file sizes by up to 90% while maintaining stunning visual quality.
                   </p>
                 </div>
-                
+
                 {/* Feature Highlights */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-gray-900">Features</h3>
-                  <div className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Features</h3>
+                  <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-950 rounded-lg">
                     <Heart className="w-4 h-4 text-red-500" />
-                    <span className="text-sm font-medium">Free & Privacy-focused</span>
+                    <span className="text-sm font-medium dark:text-gray-200">Free & Privacy-focused</span>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 bg-yellow-50 rounded-lg">
+                  <div className="flex items-center space-x-2 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
                     <Zap className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm font-medium">Lightning fast processing</span>
+                    <span className="text-sm font-medium dark:text-gray-200">Lightning fast processing</span>
                   </div>
-                  <a 
-                    href="https://github.com/adenaufal/imagecompress" 
-                    target="_blank" 
+                  <a
+                    href="https://github.com/adenaufal/imagecompress"
+                    target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    <Github className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm font-medium">Open source</span>
+                    <Github className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <span className="text-sm font-medium dark:text-gray-200">Open source</span>
                   </a>
                 </div>
-                
+
                 {/* Footer Content */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <div className="text-center text-gray-500 text-sm">
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-dark-border">
+                  <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
                     <p>
                       Built with ❤️ by{' '}
-                      <a 
-                        href="https://github.com/adenaufal" 
-                        target="_blank" 
+                      <a
+                        href="https://github.com/adenaufal"
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 transition-colors"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                       >
                         adenaufal
                       </a>
@@ -77,8 +88,9 @@ export const Header: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
 
@@ -91,14 +103,21 @@ export const Header: React.FC = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             ImageCompress
           </h1>
+          <button
+            onClick={toggleTheme}
+            className="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-300 transform hover:scale-105"
+            aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          >
+            {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6 text-yellow-500" />}
+          </button>
         </div>
-        
-        <p className="text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-          Ultra-powerful image compression that reduces file sizes by up to 90% 
+
+        <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
+          Ultra-powerful image compression that reduces file sizes by up to 90%
           while maintaining stunning visual quality
         </p>
 
-        <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+        <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center space-x-1">
             <Heart className="w-4 h-4 text-red-500" />
             <span>Free & Privacy-focused</span>
@@ -107,11 +126,11 @@ export const Header: React.FC = () => {
             <Zap className="w-4 h-4 text-yellow-500" />
             <span>Lightning fast processing</span>
           </div>
-          <a 
-            href="https://github.com/adenaufal/imagecompress" 
-            target="_blank" 
+          <a
+            href="https://github.com/adenaufal/imagecompress"
+            target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 hover:text-gray-700 transition-colors"
+            className="flex items-center space-x-1 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             <Github className="w-4 h-4" />
             <span>Open source</span>
