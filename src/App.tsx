@@ -1,11 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
 import { CompressionControls } from './components/CompressionControls';
 import { ImagePreview } from './components/ImagePreview';
 import { compressImage, downloadFile, formatFileSize, copyAllImagesToClipboard } from './utils/imageCompression';
 import { getDefaultPreset } from './utils/presets';
+import { exportToZip, changeFileExtension } from './utils/zipExport';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 interface CompressionResult {
   file: File;
@@ -38,6 +41,7 @@ function App() {
   const handleFileSelect = useCallback((files: File[]) => {
     const newImages = files.map(file => ({ file }));
     setImages(prev => [...prev, ...newImages]);
+    toast.success(`${files.length} image${files.length > 1 ? 's' : ''} added`);
   }, []);
 
   // Listen for the custom event from the "Add more" button
@@ -60,11 +64,16 @@ function App() {
     if (images.length === 0) return;
 
     setIsProcessing(true);
-    
+
     // Mark all images as processing
     setImages(prev => prev.map(img => ({ ...img, isProcessing: true, result: undefined })));
 
+    const loadingToast = toast.loading(`Compressing ${images.length} image${images.length > 1 ? 's' : ''}...`);
+
     try {
+      let successCount = 0;
+      let failureCount = 0;
+
       const compressionPromises = images.map(async (image, index) => {
         try {
           const result = await compressImage(image.file, {
@@ -74,64 +83,162 @@ function App() {
           });
 
           // Update this specific image with its result
-          setImages(prev => prev.map((img, i) => 
-            i === index 
+          setImages(prev => prev.map((img, i) =>
+            i === index
               ? { ...img, result, isProcessing: false }
               : img
           ));
 
+          successCount++;
           return { ...image, result };
         } catch (error) {
           console.error('Compression failed for', image.file.name, error);
-          setImages(prev => prev.map((img, i) => 
-            i === index 
+          setImages(prev => prev.map((img, i) =>
+            i === index
               ? { ...img, isProcessing: false }
               : img
           ));
+          failureCount++;
           return image;
         }
       });
 
       await Promise.all(compressionPromises);
+
+      toast.dismiss(loadingToast);
+
+      if (failureCount === 0) {
+        toast.success(`Successfully compressed ${successCount} image${successCount > 1 ? 's' : ''}!`);
+      } else if (successCount > 0) {
+        toast.success(`Compressed ${successCount} image${successCount > 1 ? 's' : ''}, ${failureCount} failed`);
+      } else {
+        toast.error('Compression failed for all images');
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('An error occurred during compression');
     } finally {
       setIsProcessing(false);
     }
   }, [images, quality, maxWidth, format]);
 
   const handleDownloadAll = useCallback(() => {
+    const downloadCount = images.filter(img => img.result).length;
     images.forEach((image) => {
       if (image.result) {
         downloadFile(image.result.blob, image.file.name, format);
       }
     });
+    toast.success(`Downloaded ${downloadCount} image${downloadCount > 1 ? 's' : ''}`);
   }, [images, format]);
 
   const handleCopyAll = async () => {
     const blobs = images
       .map(image => image.result?.blob)
       .filter((blob): blob is Blob => blob !== undefined);
-    
+
     if (blobs.length === 0) return;
-    
+
     try {
       await copyAllImagesToClipboard(blobs);
-      // You could add a toast notification here if needed
+      toast.success(`Copied ${blobs.length} image${blobs.length > 1 ? 's' : ''} to clipboard!`);
     } catch (error) {
       console.error('Failed to copy all images:', error);
-      // You could add error notification here if needed
+      toast.error('Failed to copy images to clipboard');
     }
   };
 
   const handleClearAll = () => {
+    const imageCount = images.length;
     setImages([]);
+    toast.success(`Cleared ${imageCount} image${imageCount > 1 ? 's' : ''}`);
   };
+
+  const handleDownloadAsZip = useCallback(async () => {
+    const compressedImages = images
+      .filter(img => img.result)
+      .map(img => ({
+        blob: img.result!.blob,
+        filename: changeFileExtension(img.file.name, format),
+      }));
+
+    if (compressedImages.length === 0) {
+      toast.error('No compressed images to download');
+      return;
+    }
+
+    try {
+      const zipLoadingToast = toast.loading('Creating ZIP file...');
+      await exportToZip(compressedImages, 'compressed-images.zip');
+      toast.dismiss(zipLoadingToast);
+      toast.success(`Downloaded ${compressedImages.length} image${compressedImages.length > 1 ? 's' : ''} as ZIP`);
+    } catch (error) {
+      console.error('Failed to create ZIP:', error);
+      toast.error('Failed to create ZIP file');
+    }
+  }, [images, format]);
 
   const hasResults = images.some(img => img.result);
   const totalOriginalSize = images.reduce((sum, img) => sum + img.file.size, 0);
   const totalCompressedSize = images.reduce((sum, img) => sum + (img.result?.compressedSize || 0), 0);
-  const overallCompressionRatio = totalOriginalSize > 0 
-    ? ((totalOriginalSize - totalCompressedSize) / totalOriginalSize) * 100 
+  const overallCompressionRatio = totalOriginalSize > 0
+    ? ((totalOriginalSize - totalCompressedSize) / totalOriginalSize) * 100
     : 0;
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'Enter',
+      ctrl: true,
+      action: () => {
+        if (images.length > 0 && !isProcessing) {
+          handleCompress();
+        }
+      },
+      description: 'Compress images',
+    },
+    {
+      key: 'z',
+      ctrl: true,
+      action: () => {
+        if (hasResults) {
+          handleDownloadAsZip();
+        }
+      },
+      description: 'Download as ZIP',
+    },
+    {
+      key: 'c',
+      ctrl: true,
+      shift: true,
+      action: () => {
+        if (hasResults) {
+          handleCopyAll();
+        }
+      },
+      description: 'Copy all images',
+    },
+    {
+      key: 'd',
+      ctrl: true,
+      shift: true,
+      action: () => {
+        if (hasResults) {
+          handleDownloadAll();
+        }
+      },
+      description: 'Download all images',
+    },
+    {
+      key: 'Delete',
+      action: () => {
+        if (images.length > 0) {
+          handleClearAll();
+        }
+      },
+      description: 'Clear all images',
+    },
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-dark-bg dark:via-gray-900 dark:to-dark-bg font-satoshi transition-colors duration-300">
@@ -153,6 +260,7 @@ function App() {
                 onPresetChange={handlePresetChange}
                 onCompress={handleCompress}
                 onDownloadAll={handleDownloadAll}
+                onDownloadAsZip={handleDownloadAsZip}
                 onCopyAll={handleCopyAll}
                 onClearAll={handleClearAll}
                 isProcessing={isProcessing}
@@ -220,6 +328,7 @@ function App() {
                 onPresetChange={handlePresetChange}
                 onCompress={handleCompress}
                 onDownloadAll={handleDownloadAll}
+                onDownloadAsZip={handleDownloadAsZip}
                 onCopyAll={handleCopyAll}
                 onClearAll={handleClearAll}
                 isProcessing={isProcessing}
