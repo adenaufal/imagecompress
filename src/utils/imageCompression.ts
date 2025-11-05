@@ -4,6 +4,7 @@ interface CompressionOptions {
   maxHeight?: number;
   format?: 'jpeg' | 'png' | 'webp';
   deviceType?: 'mobile' | 'tablet' | 'desktop';
+  onProgress?: (progress: number) => void;
 }
 
 interface CompressionResult {
@@ -57,14 +58,20 @@ export const compressImage = (
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
+    // Report initial progress
+    options.onProgress?.(10);
+
     img.onload = () => {
+      // Image loaded
+      options.onProgress?.(30);
+
       // Store original dimensions
       const originalWidth = img.width;
       const originalHeight = img.height;
-      
+
       // Get device-specific settings
       const deviceSettings = getDeviceCompressionSettings(options);
-      
+
       // Calculate new dimensions
       let { width, height } = img;
       const maxWidth = deviceSettings.maxWidth || 1920;
@@ -80,8 +87,14 @@ export const compressImage = (
       canvas.width = width;
       canvas.height = height;
 
+      // Canvas ready
+      options.onProgress?.(50);
+
       // Draw and compress
       ctx!.drawImage(img, 0, 0, width, height);
+
+      // Drawing complete
+      options.onProgress?.(70);
 
       // Determine output format
       let outputFormat = 'image/jpeg';
@@ -95,7 +108,13 @@ export const compressImage = (
             return;
           }
 
+          // Encoding complete
+          options.onProgress?.(90);
+
           const compressionRatio = ((file.size - blob.size) / file.size) * 100;
+
+          // Finalizing
+          options.onProgress?.(100);
 
           resolve({
             blob,
